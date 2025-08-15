@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Sign-Up Calendar</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .day {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      min-height: 100px;
+      position: relative;
+      cursor: pointer;
+    }
+    .day:hover {
+      background-color: #e0f7fa;
+    }
+    .signup {
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      width: 300px;
+    }
+    .modal-content input, .modal-content textarea {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .close {
+      float: right;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Meal Sign-Up Calendar</h1>
+  <div id="calendar" class="calendar"></div>
+
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3 id="modal-date"></h3>
+      <input type="text" id="name" placeholder="Your Name">
+      <textarea id="meal" placeholder="Meal Description (optional)"></textarea>
+      <button onclick="saveSignup()">Save</button>
+      <button onclick="removeSignup()">Remove</button>
+    </div>
+  </div>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const modal = document.getElementById('modal');
+    const modalDate = document.getElementById('modal-date');
+    const nameInput = document.getElementById('name');
+    const mealInput = document.getElementById('meal');
+
+    let selectedDate = '';
+    let signups = {};
+
+    function generateCalendar(startMonth, endMonth) {
+      const today = new Date();
+      const year = today.getFullYear();
+      for (let month = startMonth; month <= endMonth; month++) {
+        const date = new Date(year, month, 1);
+        while (date.getMonth() === month) {
+          const dayDiv = document.createElement('div');
+          dayDiv.className = 'day';
+          const dateStr = date.toISOString().split('T')[0];
+          dayDiv.dataset.date = dateStr;
+          dayDiv.innerHTML = `<strong>${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}</strong>`;
+          if (signups[dateStr]) {
+            dayDiv.innerHTML += `<div class="signup">${signups[dateStr].name}<br>${signups[dateStr].meal}</div>`;
+          }
+          dayDiv.onclick = () => openModal(dateStr);
+          calendar.appendChild(dayDiv);
+          date.setDate(date.getDate() + 1);
+        }
+      }
+    }
+
+    function openModal(dateStr) {
+      selectedDate = dateStr;
+      modalDate.textContent = `Sign up for ${dateStr}`;
+      nameInput.value = signups[dateStr]?.name || '';
+      mealInput.value = signups[dateStr]?.meal || '';
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    function saveSignup() {
+      signups[selectedDate] = {
+        name: nameInput.value,
+        meal: mealInput.value
+      };
+      refreshCalendar();
+      closeModal();
+    }
+
+    function removeSignup() {
+      delete signups[selectedDate];
+      refreshCalendar();
+      closeModal();
+    }
+
+    function refreshCalendar() {
+      calendar.innerHTML = '';
+      generateCalendar(7, 9); // August (7), September (8), October (9)
+    }
+
+    refreshCalendar();
+  </script>
+</body>
+</html>
